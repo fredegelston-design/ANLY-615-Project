@@ -26,7 +26,7 @@ from sqlalchemy import (
 host = "anly-615-project-anlyproject.g.aivencloud.com"
 port = 23263
 user = "avnadmin"
-password = "AVNS_uZtAlXsQZVgdnkwXesP"
+password = "xxxxxxxxxxx"
 database = "defaultdb"
 
 connection_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
@@ -384,4 +384,5 @@ oil_prices.to_sql(
 print("Table created and dataset 7 has been inserted successfully.")
 
 # Dataset 7 has been uploaded to the database
+
 
