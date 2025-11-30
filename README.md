@@ -3,7 +3,7 @@
 # Is the Inverted Yield Curve the Best Predictor of U.S. Recessions?
 ### An Analysis of Economic Indicators to Predict Recession (2001–2024)
 
-**Authors:** Rucha Shukla, Nurtas Agiadarov, Trey Egelston
+**Authors:** Rucha Shukla, Nurtas Agaidarov, Trey Egelston
 
 **Course:** ANLY 615
 **Date:** November 30, 2025  
