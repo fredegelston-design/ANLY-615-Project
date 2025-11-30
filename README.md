@@ -73,4 +73,8 @@ Note: SQL Database is a hosted server from Aiven. Please see aiven_database_cred
 7. Fred Crude Oil Prices API
    - API with historical daily oil prices (dollars per barrel)
    - https://fred.stlouisfed.org/series/DCOILWTICO & [GDP, CPIAUCSL, UMCSENT]
+
+8. Fred Recession Indicator "Recession_Indicator.CSV"
+   - Binary indicator for recession
+   - https://fred.stlouisfed.org/series/JHDUSRGDPBR
   
