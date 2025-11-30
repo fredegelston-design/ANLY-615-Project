@@ -10,13 +10,13 @@
 **Final Project Submission (Code)**
 
 ## Project Overview & Research Question
-This project investigates whether an **inverted yield curve** (10-Year minus 2-Year Treasury spread) is a reliable leading indicator of U.S. recessions compared to alternative early-warning signals such as:
+This project investigates whether an **inverted yield curve** (5-Year vs 1 month Treasury spread) is a reliable leading indicator of U.S. recessions compared to alternative early-warning signals such as:
 - Declining crude oil prices
 - Negative consumer sentiment trends
 - Sharp S&P 500 declines
 
 **Definition of Recession (target variable):**  
-Two consecutive quarters of negative real GDP growth
+Two consecutive quarters of negative real GDP growth (later verified with FRED data)
 
 ## Prerequisites prior to running code
 1. Ensure Python and database environement are installed on your machine. We recommend using Visual Studio Code and the ipython and MySQL extensions.
@@ -34,17 +34,18 @@ Two consecutive quarters of negative real GDP growth
 
 1. After downloading zip file, "Final Project Submission Code" extract all files to a common folder.
 
-Note: all imported CSV and Excel files have been specified using a relative path, please ensure all files are extracted to the same directory.
+Note: all imported CSV and Excel files have been specified using a relative path, please ensure all files are extracted from the zip file to the same directory.
 
 Note: SQL Database is a hosted server from Aiven. Please see aiven_database_credentials.PNG file for login creditials if issues are encountered (this should not be necesscary as all credentials and connection strings/engines have been formatted within the script)
 
-Note: API keys for FRED data are included in the code files included in the zip file for grading purposes, however for outside reproducablity, instructions to create personal API keys are at the end of this document.  
+Note: API keys for FRED data are included in the code files included in the zip file for grading purposes. However for outside reproducablity, instructions to create personal API keys are at the end of this document.  
 
 2. The code for this project is seperated into three files, run the code in the following order:
    i. 1python_import_clean_export
    ii. 2sql_database_sorting_merging
    iii. 3python_extract_logistic_analysis
-   
+
+3. Interpretations of the outputs be included in the powerpoint and discussed in the presentation. 
 
 ## Data Sources (All CSV and Excel files can be found in zip file under name below)
 
