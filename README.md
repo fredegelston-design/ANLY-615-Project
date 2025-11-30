@@ -1,7 +1,7 @@
 # ANLY-615-Project
 
 # Is the Inverted Yield Curve the Best Predictor of U.S. Recessions?
-### An Empirical Analysis of Leading Economic Indicators (1984–2024)
+### An Analysis of Economic Indicators to Predict Recession (2001–2024)
 
 **Authors:** Rucha Shukla, Nurtas Agiadarov, Trey Egelston
 
