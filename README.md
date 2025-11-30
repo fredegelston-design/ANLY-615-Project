@@ -18,13 +18,25 @@ This project investigates whether an **inverted yield curve** (10-Year minus 2-Y
 **Definition of Recession (target variable):**  
 Two consecutive quarters of negative real GDP growth
 
+## Prerequisites prior to running code
+1. Ensure Python and database environement are installed on your machine. We recommend using Visual Studio Code and the ipython and MySQL extensions.
+2. If the database contents are is to be viewed in the Database, please use "Add connection" and refer to the aiven_database_credentials.PNG in the zip folder for configuration details
+3. Ensure the following packages have been installed:
+   numpy
+   pandas
+   sqlalchemy
+   datetime 
+   fredapi
+   statsmodels
+   scikit-learn
+   
 ## How to Run the code
 
-1. Download zip file, "Final Project Submission Code" and extract all files.
+1. After downloading zip file, "Final Project Submission Code" extract all files to a common folder.
 
-Note: all imported CSV Excel files have been specified using a relative path, please ensure all files are extracted to the same directory.
+Note: all imported CSV and Excel files have been specified using a relative path, please ensure all files are extracted to the same directory.
 
-Note: SQL Database is a hosted server from Aiven. Please see aiven_database_credentials.PNG file for login creditials if issues are encountered (this should not be necesscary as all credentials and connection strings have been formatted within the script)
+Note: SQL Database is a hosted server from Aiven. Please see aiven_database_credentials.PNG file for login creditials if issues are encountered (this should not be necesscary as all credentials and connection strings/engines have been formatted within the script)
 
 2. The code for this project is seperated into three files, run the code in the following order:
    i. 1python_import_clean_export
