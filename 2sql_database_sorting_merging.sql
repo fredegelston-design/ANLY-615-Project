@@ -1,8 +1,3 @@
-ALTER TABLE quarterly_merged_economic_data DROP COLUMN gdp_pct_change_annual;
-ALTER TABLE quarterly_merged_economic_data DROP COLUMN avg_sb_percentage_difference;
-DELETE FROM quarterly_merged_economic_data WHERE LEFT(quarter, 4) = '2025';
--- Update to round all float columns to 2 decimal places
-UPDATE quarterly_merged_economic_data SET avg_sp500_close = ROUND(avg_sp500_close, 2), gdp_pct_change_quarterly = ROUND(gdp_pct_change_quarterly, 2), avg_yield_1mo = ROUND(avg_yield_1mo, 2), avg_yield_5yr = ROUND(avg_yield_5yr, 2), avg_yield_spread = ROUND(avg_yield_spread, 2), avg_consumer_sentiment = ROUND(avg_consumer_sentiment, 2), avg_oil = ROUND(avg_oil, 2);
 
 CREATE TABLE quarterly_consumer_sentiment (
   quarter VARCHAR(10) PRIMARY KEY,
@@ -99,6 +94,9 @@ WHERE date > '2001-01-01'
 GROUP BY quarter
 ORDER BY quarter;
 
+
+
+
 CREATE TABLE quarterly_merged_economic_data (
   quarter VARCHAR(10) PRIMARY KEY,  -- Enforces uniqueness on quarter
   avg_sp500_close FLOAT,
@@ -126,11 +124,17 @@ SELECT
   cs.avg_consumer_sentiment,
   op.avg_oil,
   svb.avg_sb_percentage_difference
-FROM quarterly_sp500_cleaned sp
-LEFT JOIN quarterly_usa_gdp_data gdp ON sp.quarter = gdp.quarter
-LEFT JOIN quarterly_ytm_cleaned ytm ON sp.quarter = ytm.quarter
-LEFT JOIN quarterly_consumer_sentiment cs ON sp.quarter = cs.quarter
-LEFT JOIN quarterly_oil_prices op ON sp.quarter = op.quarter
-LEFT JOIN quarterly_sellers_vs_buyers svb ON sp.quarter = svb.quarter
+FROM quarterly_sp500_cleaned1 sp
+LEFT JOIN quarterly_usa_gdp_data1 gdp ON sp.quarter = gdp.quarter
+LEFT JOIN quarterly_ytm_cleaned1 ytm ON sp.quarter = ytm.quarter
+LEFT JOIN quarterly_consumer_sentiment1 cs ON sp.quarter = cs.quarter
+LEFT JOIN quarterly_oil_prices1 op ON sp.quarter = op.quarter
+LEFT JOIN quarterly_sellers_vs_buyers1 svb ON sp.quarter = svb.quarter
 WHERE sp.quarter >= '2001-Q3'
 ORDER BY sp.quarter;
+
+ALTER TABLE quarterly_merged_economic_data DROP COLUMN gdp_pct_change_annual;
+ALTER TABLE quarterly_merged_economic_data DROP COLUMN avg_sb_percentage_difference;
+DELETE FROM quarterly_merged_economic_data WHERE LEFT(quarter, 4) = '2025';
+-- Update to round all float columns to 2 decimal places
+UPDATE quarterly_merged_economic_data SET avg_sp500_close = ROUND(avg_sp500_close, 2), gdp_pct_change_quarterly = ROUND(gdp_pct_change_quarterly, 2), avg_yield_1mo = ROUND(avg_yield_1mo, 2), avg_yield_5yr = ROUND(avg_yield_5yr, 2), avg_yield_spread = ROUND(avg_yield_spread, 2), avg_consumer_sentiment = ROUND(avg_consumer_sentiment, 2), avg_oil = ROUND(avg_oil, 2);
