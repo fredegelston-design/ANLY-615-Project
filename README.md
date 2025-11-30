@@ -38,6 +38,8 @@ Note: all imported CSV and Excel files have been specified using a relative path
 
 Note: SQL Database is a hosted server from Aiven. Please see aiven_database_credentials.PNG file for login creditials if issues are encountered (this should not be necesscary as all credentials and connection strings/engines have been formatted within the script)
 
+Note: API keys for FRED data are included in the code files included in the zip file for grading purposes, however for outside reproducablity, instructions to create personal API keys are at the end of this document.  
+
 2. The code for this project is seperated into three files, run the code in the following order:
    i. 1python_import_clean_export
    ii. 2sql_database_sorting_merging
@@ -77,4 +79,10 @@ Note: SQL Database is a hosted server from Aiven. Please see aiven_database_cred
 8. Fred Recession Indicator "Recession_Indicator.CSV"
    - Binary indicator for recession
    - https://fred.stlouisfed.org/series/JHDUSRGDPBR
+  
+## Generating your FRED API:
+ 
+Create an account or log in to https://fredaccount.stlouisfed.org/login/secure/
+Go to 'API Keys' on the left side of the page
+Click on 'Request API Key' to generate your API key
   
