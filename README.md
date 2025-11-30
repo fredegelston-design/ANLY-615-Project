@@ -18,4 +18,20 @@ This project investigates whether an **inverted yield curve** (10-Year minus 2-Y
 **Definition of Recession (target variable):**  
 Two consecutive quarters of negative real GDP growth
 
-## Data Sources
+## Data Sources (All files can be found in zip file under name in single quotes)
+
+1. 'International Monetary Fund World Economic Outlook 1980 Onward.csv'
+  - Report produced by IMF that contains annual country GDP data
+  - https://data.imf.org/en/datasets/IMF.RES:WEO
+
+2. 'buyers vs sellers.xlsx'
+  - Dataset sourced from redfin.com with data gathered from Multiple Listing Service (MLS)
+  - Data provides information about the percentage difference between available homes for sale vs         demand for homes by buyers
+  - https://www.redfin.com/news/data-center/buyers-vs-sellers-dynamics/
+
+3. 'SP500.csv'
+   - Dataset sourced from FRED with daily entries for S&P500 close price and dates
+   - https://fred.stlouisfed.org/series/SP500
+  
+4. 'YTM.csv'
+   - Dataset sourced from FRED with daily entries for S&P500 close price and dates
