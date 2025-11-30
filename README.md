@@ -28,23 +28,23 @@ Two consecutive quarters of negative real GDP growth
   - Dataset sourced from redfin.com with data gathered from Multiple Listing Service (MLS)
   - Data provides information about the percentage difference between available homes for sale vs         demand for homes by buyers
   - https://www.redfin.com/news/data-center/buyers-vs-sellers-dynamics/
+3. 'FRED GDP Percent Change Quarterly 1947 Onward.csv'
+   - Dataset from FRED with US GDP represented in percent change from previous quarter
+   - https://fred.stlouisfed.org/series/A191RP1Q027SBEA
 
-3. 'SP500.csv'
+4. 'SP500.csv'
    - Dataset sourced from FRED with daily entries for S&P500 close price and dates
    - https://fred.stlouisfed.org/series/SP500
   
-4. 'YTM.csv'
+5. 'YTM.csv'
    - Dataset sourced from FRED with daily entries for S&P500 close price and dates
   
-5. FRED Consumer Sentiment API
+6. FRED Consumer Sentiment API
    - API with historical dataset related to consumer sentiment measures
    - https://fred.stlouisfed.org/series/UMCSENT & [UMCSENTx, UMCSENTz, RSAFS, PCE, DSPIC96]
    - API Key - 040f34cc42f9d7ce3012b06c21d6fd6b
   
-6. Fred Crude Oil Prices API
+7. Fred Crude Oil Prices API
    - API with historical daily oil prices (dollars per barrel)
    - https://fred.stlouisfed.org/series/DCOILWTICO & [GDP, CPIAUCSL, UMCSENT]
   
-7. 'FRED GDP Percent Change Quarterly 1947 Onward.csv'
-   - Dataset from FRED with US GDP represented in percent change from previous quarter
-   - https://fred.stlouisfed.org/series/A191RP1Q027SBEA
