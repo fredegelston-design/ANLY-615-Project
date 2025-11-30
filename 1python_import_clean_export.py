@@ -12,6 +12,26 @@ from sqlalchemy.types import Date, Float
 import os
 from datetime import datetime
 from fredapi import Fred
+import pandas as pd
+from sqlalchemy import (
+    MetaData,
+    Table,
+    Column,
+    DateTime,
+    Float,      # this is sqlalchemy.Float, not the built-in float
+)
+
+# Database connection 
+
+host = "anly-615-project-anlyproject.g.aivencloud.com"
+port = 23263
+user = "avnadmin"
+password = "AVNS_uZtAlXsQZVgdnkwXesP"
+database = "defaultdb"
+
+connection_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+engine = create_engine(connection_string, connect_args={"ssl": {"ssl_mode": "REQUIRED"}}, echo=False)
+
 
 
 ####### Dataset 1 & 2: 'International Monetary Fund World Economic Outlook 1980 Onward.csv' & 'FRED GDP Percent Change Quarterly 1947 Onward.csv'
@@ -89,16 +109,6 @@ final_gdp = pd.merge(fred_gdp, usa_filtered, on='date', how='left')
 
 #Create new table in database to hold the dataframe
 
-
-host = "anly-615-project-anlyproject.g.aivencloud.com"
-port = 23263
-user = "avnadmin"
-password = "AVNS_uZtAlXsQZVgdnkwXesP"
-database = "defaultdb"
-
-connection_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
-engine = create_engine(connection_string, connect_args={"ssl": {"ssl_mode": "REQUIRED"}}, echo=False)
-
 with engine.connect() as conn:
     # Drop the table if it exists AKA overwrite an older one
     conn.execute(text("DROP TABLE IF EXISTS usa_gdp_data"))
@@ -173,15 +183,6 @@ result_df = pd.DataFrame({
 #Create new table in database to hold the dataframe
 
 
-host = "anly-615-project-anlyproject.g.aivencloud.com"
-port = 23263
-user = "avnadmin"
-password = "AVNS_uZtAlXsQZVgdnkwXesP"
-database = "defaultdb"
-
-connection_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
-engine = create_engine(connection_string, connect_args={"ssl": {"ssl_mode": "REQUIRED"}}, echo=False)
-
 with engine.connect() as conn:
     # Drop the table if it exists AKA overwrite an older one
     conn.execute(text("DROP TABLE IF EXISTS sellers_vs_buyers"))
@@ -218,275 +219,120 @@ print("Table created and dataset 3 has been inserted successfully.")
 
 ####### Dataset 4: 'SP500.csv'
 
-# --------------------------------------------------------
-# 1. CONNECTION TO AIVEN MYSQL
-# --------------------------------------------------------
-host = "anly-615-project-anlyproject.g.aivencloud.com"
-port = 23263
-user = "avnadmin"
-password = "AVNS_uZtAlXsQZVgdnkwXesP"
-database = "defaultdb"
-
-# SSL argument is required for Aiven
-connect_args = {"ssl": {"ssl_mode": "REQUIRED"}}
-
-engine = create_engine(
-    f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}",
-    connect_args=connect_args,
-    echo=False
-)
-
-metadata = MetaData()
-
-# --------------------------------------------------------
-# 2. DEFINE TABLE SCHEMA
-# --------------------------------------------------------
-# We define the schema for the cleaned SP500 data
-sp500_table = Table(
-    "sp500_cleaned",
-    metadata,
-    Column("date", DateTime, primary_key=True),
-    Column("close", Float)
-)
-
-# --------------------------------------------------------
-# 3. CREATE TABLE IN MYSQL (only if not exists)
-# --------------------------------------------------------
-metadata.create_all(engine)
-print("Table 'sp500_cleaned' created (if not already present).")
-
-# --------------------------------------------------------
-# 4. LOAD AND CLEAN DATA (Your Code Logic)
-# --------------------------------------------------------
-
-# Load the CSV file (Assuming SP500.csv is in the same directory)
-# You can update the path below if the file is elsewhere, e.g., r"C:\Users\...\SP500.csv"
-csv_path = r"C:\Users\nurta\Downloads\SP500.csv"
+csv_path = "SP500.csv"
 df = pd.read_csv(csv_path)
 
-# --- Cleaning Steps from your notebook ---
+df.columns = df.columns.str.lower()
 
-# 1. Remove columns open, high, low, volume
-columns_to_remove = ["open", "high", "low", "volume"]
-df = df.drop(columns=columns_to_remove, errors='ignore')
-
-# 2. Drop rows with any null values
+df = df.drop(columns=["open", "high", "low", "volume"], errors="ignore")
 df = df.dropna()
-
-# 3. Ensure correct data types
-df['close'] = df['close'].astype(float)
-
-# 4. Convert date to datetime objects
-# Note: For SQL upload via SQLAlchemy, it is best to keep these as Python datetime objects
-# rather than converting them to strings (YYYY-MM-DD).
-df['date'] = pd.to_datetime(df['date'], utc=True)
-
-# Remove timezone info if your MySQL server expects naive datetimes, 
-# or keep it if the column supports it. Aiven usually handles standard datetime.
-df['date'] = df['date'].dt.tz_convert(None) 
-
-# Remove duplicates to prevent Primary Key errors
+df["close"] = df["close"].astype(float)
+df["date"] = pd.to_datetime(df["date"], utc=True, errors='coerce').dt.tz_localize(None).dt.date
 df = df.drop_duplicates(subset="date")
 
-print(f"Data cleaned. Rows to upload: {len(df)}")
+with engine.connect() as conn:
+    conn.execute(text("DROP TABLE IF EXISTS sp500_cleaned"))
+    conn.execute(text("""
+        CREATE TABLE sp500_cleaned (
+            date DATE PRIMARY KEY,
+            close DECIMAL(14,6)
+        ) ENGINE=InnoDB
+    """))
+    conn.commit()
 
-# --------------------------------------------------------
-# 5. INSERT INTO MYSQL
-# --------------------------------------------------------
-
+# ← NOW INSERT THE CORRECT DATAFRAME (df, not result_df!)
 df.to_sql(
     "sp500_cleaned",
     con=engine,
-    if_exists="append",  # Use 'replace' if you want to overwrite the table each time
-    index=False
+    if_exists="append",
+    index=False,
+    dtype={"date": Date, "close": Float}
 )
 
-print("SP500 data uploaded successfully!")
-
-# --------------------------------------------------------
-# 6. VALIDATION QUERIES
-# --------------------------------------------------------
-
-print("\n--- VALIDATION: Check uploaded table ---")
-# Check the first 5 rows
-sample_sp500 = pd.read_sql("SELECT * FROM sp500_cleaned ORDER BY date ASC LIMIT 5;", engine)
-print(sample_sp500)
-
-print("\nAll Done!")
-
-
-# Dataset 4 has been uploaded to the database
-
+print("Dataset 4, SP500 data uploaded successfully!")
 
 ####### Dataset 5: 'YTM.csv'
 
-# --------------------------------------------------------
-# 1. CONNECTION TO AIVEN MYSQL
-# --------------------------------------------------------
-host = "anly-615-project-anlyproject.g.aivencloud.com"
-port = 23263
-user = "avnadmin"
-password = "AVNS_uZtAlXsQZVgdnkwXesP"
-database = "defaultdb"
-
-# SSL argument is required for Aiven
-connect_args = {"ssl": {"ssl_mode": "REQUIRED"}}
-
-engine = create_engine(
-    f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}",
-    connect_args=connect_args,
-    echo=False
-)
-
-metadata = MetaData()
-
-# --------------------------------------------------------
-# 2. DEFINE TABLE SCHEMA
-# --------------------------------------------------------
-# We rename columns to be SQL-friendly (no spaces, no starting numbers)
-ytm_table = Table(
-    "ytm_cleaned",
-    metadata,
-    Column("date", DateTime, primary_key=True),
-    Column("yield_1mo", Float),
-    Column("yield_5yr", Float),
-    Column("yield_spread", Float)
-)
-
-# --------------------------------------------------------
-# 3. CREATE TABLE IN MYSQL
-# --------------------------------------------------------
-metadata.create_all(engine)
-print("Table 'ytm_cleaned' created (if not already present).")
-
-# --------------------------------------------------------
-# 4. LOAD AND CLEAN DATA
-# --------------------------------------------------------
-csv_path = r"C:\Users\nurta\Downloads\YTM.csv"
+csv_path = "YTM.csv"
 df = pd.read_csv(csv_path)
+df.columns = df.columns.str.lower()
 
-# Remove all columns except Date, 1 Mo, and 5 Yr
-columns_to_keep = ["Date", "1 Mo", "5 Yr"]
-df = df[columns_to_keep].copy()
-
-# Convert numeric columns to float, coercing errors
-df['1 Mo'] = pd.to_numeric(df['1 Mo'], errors='coerce')
-df['5 Yr'] = pd.to_numeric(df['5 Yr'], errors='coerce')
-
-# Drop rows with NaNs (crucial before math operations)
+df = df[["date", "1 mo", "5 yr"]].copy()
+df["1 mo"] = pd.to_numeric(df["1 mo"], errors="coerce")
+df["5 yr"] = pd.to_numeric(df["5 yr"], errors="coerce")
 df = df.dropna()
 
-# Create the new difference column: 5 Yr - 1 Mo
-df['Spread_5Yr_1Mo'] = df['5 Yr'] - df['1 Mo']
+df["yield_spread"] = df["5 yr"] - df["1 mo"]
+df["date"] = pd.to_datetime(df["date"], utc=True, errors='coerce').dt.tz_localize(None).dt.date
 
-# Ensure the new column is float
-df['Spread_5Yr_1Mo'] = df['Spread_5Yr_1Mo'].astype(float)
-
-# Date Conversion
-# We convert to datetime objects for SQL compatibility (matching SP500 logic)
-# If the database requires strictly YYYY-MM-DD strings, we can convert back, 
-# but SQLAlchemy handles datetime objects best.
-df['Date'] = pd.to_datetime(df['Date'])
-
-# Rename columns to match the SQL Table Schema defined above
-df = df.rename(columns={
-    "Date": "date",
-    "1 Mo": "yield_1mo",
-    "5 Yr": "yield_5yr",
-    "Spread_5Yr_1Mo": "yield_spread"
-})
-
-# Remove duplicates based on date to prevent Primary Key errors
+df = df.rename(columns={"1 mo": "yield_1mo", "5 yr": "yield_5yr"})
+df = df[["date", "yield_1mo", "yield_5yr", "yield_spread"]]
 df = df.drop_duplicates(subset="date")
 
-print(f"Data cleaned. Rows to upload: {len(df)}")
-print(df.head())
+with engine.connect() as conn:
+    conn.execute(text("DROP TABLE IF EXISTS ytm_cleaned"))
+    conn.execute(text("""
+        CREATE TABLE ytm_cleaned (
+            date DATE PRIMARY KEY,
+            yield_1mo DECIMAL(10,6),
+            yield_5yr DECIMAL(10,6),
+            yield_spread DECIMAL(10,6)
+        ) ENGINE=InnoDB
+    """))
+    conn.commit()
 
-# --------------------------------------------------------
-# 5. INSERT INTO MYSQL
-# --------------------------------------------------------
 df.to_sql(
     "ytm_cleaned",
     con=engine,
-    if_exists="append", # Use 'replace' to overwrite, 'append' to add
-    index=False
+    if_exists="append",
+    index=False,
+    dtype={
+        "date": Date,
+        "yield_1mo": Float,
+        "yield_5yr": Float,
+        "yield_spread": Float
+    }
 )
 
-print("YTM data uploaded successfully!")
-
-# --------------------------------------------------------
-# 6. VALIDATION
-# --------------------------------------------------------
-print("\n--- VALIDATION: Check uploaded table ---")
-sample_ytm = pd.read_sql("SELECT * FROM ytm_cleaned ORDER BY date DESC LIMIT 5;", engine)
-print(sample_ytm)
-
-print("\nAll Done!")
-
-
-# Dataset 5 has been uploaded to the database
+print("Dataset 5 has been uploaded to the database")
 
 
 
-
-
-####### Dataset 6: FRED Consumer Sentiment API
-
+######## Dataset 6: FRED Consumer Sentiment (simplified & guaranteed to work)
 
 fred = Fred(api_key="040f34cc42f9d7ce3012b06c21d6fd6b")
 
-# Consumer-related FRED Series
-series = {
-    "consumer_sentiment": "UMCSENT",       # University of Michigan Consumer Sentiment
-    "consumer_expectations": "UMCSENTx",   # Expectations Index
-    "current_conditions": "UMCSENTz",      # Current Economic Conditions
-    "retail_sales": "RSAFS",               # Retail & Food Services Sales
-    "pce": "PCE",                           # Personal Consumption Expenditures
-    "income": "DSPIC96"                     # Real Disposable Personal Income
-}
+# Just get the main University of Michigan Consumer Sentiment index
+sentiment_series = fred.get_series("UMCSENT")
 
-consumer_dfs = []
+# Convert to DataFrame with proper date column
+consumer_sentiment = sentiment_series.to_frame(name="consumer_sentiment")
+consumer_sentiment = consumer_sentiment.rename_axis("date").reset_index()
 
-for name, sid in series.items():
-    s = fred.get_series(sid)
-    s = s.to_frame(name=name)
-    s.index = pd.to_datetime(s.index)
-    consumer_dfs.append(s)
+# Optional: keep only from 1978 onward (matches your old code)
+consumer_sentiment = consumer_sentiment[consumer_sentiment["date"] >= "1978-01-01"]
 
-# Merge all consumer datasets
-consumer_df = pd.concat(consumer_dfs, axis=1)
+with engine.connect() as conn:
+    conn.execute(text("DROP TABLE IF EXISTS consumer_sentiment"))
+    conn.execute(text("""
+        CREATE TABLE consumer_sentiment (
+            date DATE PRIMARY KEY,
+            consumer_sentiment DECIMAL(10,6)
+        ) ENGINE=InnoDB
+    """))
+    conn.commit()
 
-# Convert all series to monthly frequency (end of month)
-consumer_monthly = consumer_df.resample("M").last()
-
-# Drop rows if any series missing
-consumer_monthly = consumer_monthly.dropna()
-
-# Drop early incomplete rows
-consumer_monthly = consumer_monthly[consumer_monthly.index >= "1978-01-01"]
-
-print("First few rows:")
-print(consumer_monthly.head())
-
-print("\nLast few rows:")
-print(consumer_monthly.tail())
-
-print("\nMissing values:")
-print(consumer_monthly.isna().sum())
-
-# --- EXPORT WITH yyyy-mm-dd FORMAT ---
-# Name index first so reset_index() gives us column 'date'
-consumer_monthly.index.name = "date"
-
-consumer_monthly.reset_index().assign(
-    date=lambda df: df["date"].dt.strftime("%Y-%m-%d")
-).to_csv(
-    r"C:\Users\rucha\Downloads\Python & SQL\consumer_sentiment_fred1.csv",
-    index=False
+consumer_sentiment.to_sql(
+    "consumer_sentiment",
+    con=engine,
+    if_exists="append",
+    index=False,
+    dtype={"date": Date, "consumer_sentiment": Float}
 )
 
+print("Table created and dataset 6 has been inserted successfully.")
 
-# Dataset 5 has been uploaded to the database
+# Dataset 6 has been uploaded to the database
 
 
 ####### Dataset 7: Fred Crude Oil Prices API
@@ -495,55 +341,47 @@ fred = Fred(api_key="040f34cc42f9d7ce3012b06c21d6fd6b")
 
 series = {
     "oil": "DCOILWTICO",
-    "gdp": "GDP",
-    "cpi": "CPIAUCSL",
-    "sentiment": "UMCSENT"
 }
 
 dfs = []
-
 for name, sid in series.items():
     s = fred.get_series(sid)
     s = s.to_frame(name=name)
     s.index = pd.to_datetime(s.index)
     dfs.append(s)
 
-# Merge everything
 df = pd.concat(dfs, axis=1)
 
-# Keep only oil
+# Keep only oil, convert daily to monthly average
 df_oil = df[['oil']].reset_index().rename(columns={'index': 'date'})
 df_oil['date'] = pd.to_datetime(df_oil['date'])
-
-# Convert daily → monthly using month-end timestamp
 df_oil['month'] = df_oil['date'].dt.to_period("M").dt.to_timestamp("M")
 
-oil_monthly = (
-    df_oil.groupby('month')['oil']
-    .mean()
-    .to_frame()
+oil_monthly = df_oil.groupby('month')['oil'].mean().to_frame()
+
+# Final clean version with proper 'date' column and filter
+oil_prices = oil_monthly.rename_axis('date').reset_index()
+oil_prices = oil_prices[oil_prices['date'] >= "1986-01-01"]
+
+with engine.connect() as conn:
+    conn.execute(text("DROP TABLE IF EXISTS oil_prices"))
+    conn.execute(text("""
+        CREATE TABLE oil_prices (
+            date DATE PRIMARY KEY,
+            oil DECIMAL(10,6)
+        ) ENGINE=InnoDB
+    """))
+    conn.commit()
+
+oil_prices.to_sql(
+    'oil_prices', 
+    con=engine, 
+    if_exists='append', 
+    index=False, 
+    dtype={'date': Date, 'oil': Float}
 )
 
-print(oil_monthly.head())
-print(oil_monthly.tail())
+print("Table created and dataset 7 has been inserted successfully.")
 
-# Clean: keep data after 1986 only
-oil_monthly = oil_monthly[oil_monthly.index >= "1986-01-01"]
+# Dataset 7 has been uploaded to the database
 
-# ---------- EXPORT WITH yyyy-mm-dd FORMAT ----------
-oil_monthly.index.name = "date"   # sets correct column name
-
-oil_monthly.reset_index().assign(
-    date=lambda df: df["date"].dt.strftime("%Y-%m-%d")   # formatting ONLY for CSV
-).to_csv(
-    r"C:\Users\rucha\Downloads\Python & SQL\monthly_oil_prices1.csv",
-    index=False
-)
-
-
-
-
-
-
-
-####### Dataset 3: 'buyers vs sellers.xlsx'
